@@ -49,4 +49,75 @@ ex.
     It's ORDER-123<|im_end|>
     <|im_start|>assistant
 ```
------------- Messages and Special tokens part 2 remaining ------------
+
+### Chat Templates
+1. Base models: base model is trained on raw text data to predict the next token
+2. Instruct model: fine tuned base model to follow instructions and engage in a conversation
+
+#### Standard template for Chat is:
+**ChatML** format with roles **system**, **user** and **assistant**. example
+```python
+    chat = [
+    {"role": "system", "content": "You are a professional customer service agent. Always be polite, clear, and helpful."},
+    {"role": "user", "content": "I need help with my order"},
+    {"role": "assistant", "content": "I'd be happy to help. Could you provide your order number?"},
+    {"role": "user", "content": "It's ORDER-123"},
+    {"role": "assistant", "content": "Thank you. Let me check on that for you."},
+    ]
+```
+here is a simplified version of the instruct chat template:
+```python
+    {% for message in messages %}
+    {% if loop.first and messages[0]['role'] != 'system' %}
+    <|im_start|>system
+    You are a helpful AI assistant named SmolLM, trained by Hugging Face
+    <|im_end|>
+    {% endif %}
+    <|im_start|>{{ message['role'] }}
+    {{ message['content'] }}<|im_end|>
+    {% endfor %}
+```
+the above converts our converstaion and messages into system string. this is also known as the system prompt. This now goes to tokenization. 
+After selecting the model, we must apply the chat template of teh model to convert it to teh system prompt before passing it into the tokenizer. 
+```python
+    from transformers import AutoTokenizer
+    tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-1.7B-Instruct")
+    rendered_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+```
+This rendered prompt is now ready to be the input for the model. 
+
+
+## Tools
+a tool is a function given to the LLM with a clear objective. 
+common ones are web search, image generation, retrieval, API interface
+
+cant ask a base LLM model to give up to date results. For example, we cannot ask a base LLM to tell us the weather today without giving it access to a wetaher search engine or app. 
+
+it should have 4 parts:
+1. Textual description of what the function does
+2. a callable (something to perform an action)
+3. Arguments with typings
+4. Outputs with typings (optional)
+
+LLM generates the text in the form of code to invoke a tool. This is the AGENT. the output from the tool is recieved by the LLM and returned to the user. AGENT is in the background and the user does not see the AGENT's work as system prompt as in the normal conversation. 
+
+We could provide the Python source code as the specification of the tool for the LLM, but the way the tool is implemented does not matter. All that matters is its name, what it does, the inputs it expects and the output it provides.
+
+Use the @tool method to define a tool in python. this avoids making long class definitions for the simple tool. 
+```python
+    @tool
+    def calculator(a: int, b: int) -> int:
+        """Multiply two integers."""
+        return a * b
+
+    print(calculator.to_string())
+```
+
+## Thought -> Action -> Observation cycle
+1. Thought: LLM part of teh AGENT decides on teh next steps
+     **ReAct** approach of breaking down in to smaller tasks and thinking step by step. just a simple prompt of **let's think step by step** can be used to break down the task. This is the approach behind Deepseek and OpenAI O1 models; to show the Reasoning. however these models dont just have special prompting like ReAct but is a training method. system prompt <think> and </think>.
+2. Action: AGENT invokes the tool to perform the action
+    Differnet types of agents: JSON agent where action to take is specified in a json format, Code Agent where teh agent writes a code block that is interpreted externally and FUnction-calling agent which is a sub-category of JSON agent and is fine tuned to generate a new message for each action. crucial part of any agent is the ability **to stop generating new tokens when an action is complete**. Using the **Stop and Parse** approach we give a structured JSON format to output the action. This helps in halting the action, clear responses and avoiding erroneous tokens. for advanced handling, we can allow Code Agents which can interact with external systems and have more functionalities and flexibilities. 
+3. Observation: AGENT observes the output of the tool and returns it to the user, if not satisfied with the output, it can invoke the tool again.
+
+--------------------OBSERVE remaining ------------------------
