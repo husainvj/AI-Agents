@@ -114,10 +114,29 @@ Use the @tool method to define a tool in python. this avoids making long class d
 ```
 
 ## Thought -> Action -> Observation cycle
-1. Thought: LLM part of teh AGENT decides on teh next steps
-     **ReAct** approach of breaking down in to smaller tasks and thinking step by step. just a simple prompt of **let's think step by step** can be used to break down the task. This is the approach behind Deepseek and OpenAI O1 models; to show the Reasoning. however these models dont just have special prompting like ReAct but is a training method. system prompt <think> and </think>.
-2. Action: AGENT invokes the tool to perform the action
-    Differnet types of agents: JSON agent where action to take is specified in a json format, Code Agent where teh agent writes a code block that is interpreted externally and FUnction-calling agent which is a sub-category of JSON agent and is fine tuned to generate a new message for each action. crucial part of any agent is the ability **to stop generating new tokens when an action is complete**. Using the **Stop and Parse** approach we give a structured JSON format to output the action. This helps in halting the action, clear responses and avoiding erroneous tokens. for advanced handling, we can allow Code Agents which can interact with external systems and have more functionalities and flexibilities. 
-3. Observation: AGENT observes the output of the tool and returns it to the user, if not satisfied with the output, it can invoke the tool again.
 
---------------------OBSERVE remaining ------------------------
+1. **Thought**: LLM part of teh AGENT decides on teh next steps
+     **ReAct** approach of breaking down in to smaller tasks and thinking step by step. just a simple prompt of **let's think step by step** can be used to break down the task. This is the approach behind Deepseek and OpenAI O1 models; to show the Reasoning. however these models dont just have special prompting like ReAct but is a training method. system prompt <think> and </think>.
+
+        | Type of Thought | Example |
+        | ---| --- |
+        | Planning | “I need to break this task into three steps: 1) gather data, 2) analyze trends, 3) generate report” |
+        | Analysis | “Based on the error message, the issue appears to be with the database connection parameters” |
+        | Decision Making | “Given the user’s budget constraints, I should recommend the mid-tier option” |
+        | Problem Solving | “To optimize this code, I should first profile it to identify bottlenecks” |
+        | Memory Integration | “The user mentioned their preference for Python earlier, so I’ll provide examples in Python” |
+        | Self-Reflection | “My last approach didn’t work well, I should try a different strategy” |
+        | Goal Setting | “To complete this task, I need to first establish the acceptance criteria” |
+        | Prioritization | “The security vulnerability should be addressed before adding new features” |
+
+2. **Action**: AGENT invokes the tool to perform the action
+    Differnet types of agents: **JSON agent** where action to take is specified in a json format, **Code Agent** where the agent writes a code block that is interpreted externally and **Function-calling agent** which is a sub-category of JSON agent and is fine tuned to generate a new message for each action. crucial part of any agent is the ability **to stop generating new tokens when an action is complete**. Using the **Stop and Parse** approach we give a structured JSON format to output the action. This helps in halting the action, clear responses and avoiding erroneous tokens. for advanced handling, we can allow Code Agents which can interact with external systems and have more functionalities and flexibilities. 
+
+3. **Observation**: AGENT observes the output of the tool and returns it to the user, if not satisfied with the output, it can invoke the tool again. The steps for Observation are simple, **Collects feedback** by confirming whether the action was successful or not, **Appends Results** by integrating results into the existing context and thus updating its memory and **Adapts its Strategy** by refining subsequent thoughts and actions based on the updated context. some examples of observation are:
+    - “The database connection was successful, I can now proceed with the query”
+    - “The API returned an error, I need to check the request parameters”
+    - “The user confirmed that the report format is acceptable”
+    -"the sensor readings were so and so..." etc. 
+
+    #### Parse the Action -> Execute the Action -> Apend the result as an Observation 
+
