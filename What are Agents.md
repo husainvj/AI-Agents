@@ -119,7 +119,7 @@ Use the @tool method to define a tool in python. this avoids making long class d
      **ReAct** approach of breaking down in to smaller tasks and thinking step by step. just a simple prompt of **let's think step by step** can be used to break down the task. This is the approach behind Deepseek and OpenAI O1 models; to show the Reasoning. however these models dont just have special prompting like ReAct but is a training method. system prompt <think> and </think>.
 
         | Type of Thought | Example |
-        | ---| --- |
+        | --- | --- |
         | Planning | “I need to break this task into three steps: 1) gather data, 2) analyze trends, 3) generate report” |
         | Analysis | “Based on the error message, the issue appears to be with the database connection parameters” |
         | Decision Making | “Given the user’s budget constraints, I should recommend the mid-tier option” |
